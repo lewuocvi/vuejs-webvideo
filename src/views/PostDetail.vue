@@ -2,10 +2,10 @@
     <div class="container mx-auto px-4 py-8">
         <div v-if="postStore.currentPost" class="bg-white overflow-hidden">
             <div class="p-6">
-                
-                <div class="text-gray-600 text-lg leading-relaxed mb-6" v-html="formattedContent"></div>
 
-                <VideoPlayer src="https://e.streamqq.com/videos/68484c0a19bd2ece030756dd/master.m3u8" />
+                <!-- <div class="text-gray-600 text-lg leading-relaxed mb-6" v-html="formattedContent"></div> -->
+
+                <VideoPlayer />
 
                 <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ postStore.currentPost.title }}</h1>
                 <div class="flex justify-between items-center">
@@ -29,13 +29,13 @@
             <p class="text-xl text-gray-600">Đang tải bài viết...</p>
         </div>
 
-        <div v-if="postStore.currentPost" class="bg-white overflow-hidden mt-4">
+        <!-- <div v-if="postStore.currentPost" class="bg-white overflow-hidden mt-4">
             <div class="p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4">Bình luận</h2>
                 <CommentList :comments="postStore.comments" />
                 <CommentForm @add-comment="addComment" />
             </div>
-        </div>
+        </div> -->
     </div>
 </template>
 
