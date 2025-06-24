@@ -17,24 +17,38 @@
                     <p class="text-2xl font-bold">{{ formatBytes(totalUploaded) }}</p>
                 </div>
             </div>
-            <div class="mt-4 bg-white p-3 rounded shadow">
-                <p class="text-sm text-gray-600">Viewer ID</p>
-                <p class="text-xl font-semibold">{{ viewerId }}</p>
-            </div>
         </div>
     </div>
+
+    <dialog id="my_modal_1" class="modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold">Xin chào {{ userStore.displayName }}</h3>
+            <p class="py-4">Tài khoản của bạn hiện chưa đăng ký dịch vụ trả phí. <br> Độ phân giải video sẽ tự động
+                chuyển sang chất lượng thấp hơn để phù hợp với gói dịch vụ hiện tại của bạn.</p>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn" @click="handleContinue">Tiếp tục</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
 </template>
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useUserStore } from '../store/userStore'
 import Plyr from 'plyr'
-import 'plyr/dist/plyr.css'
 import Hls from 'hls.js'
 import { HlsJsP2PEngine } from 'p2p-media-loader-hlsjs'
 
+import 'plyr/dist/plyr.css'
+
+const userStore = useUserStore() // Use the userStore
 const videoEl = ref(null)
 let hls = null
 let player = null
+const lowQuality = ref(0)
+const currentQuality = ref(0)
 
 const viewerId = ref('')
 const connectedPeers = ref(0)
@@ -49,15 +63,22 @@ const formatBytes = (bytes) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-const generateViewerId = () => {
-    return 'viewer-' + Math.random().toString(36).substr(2, 9)
+const handleContinue = () => {
+    player.play(); // Play the video
+};
+
+const checkViewingPermissions = () => {
+    if (userStore.userPlanType !== "active") {
+        player.quality = lowQuality.value
+        document.getElementById('my_modal_1').showModal()
+    }
 }
 
 onMounted(() => {
     const video = videoEl.value
     const source = 'https://streaming.emmcvietnam.com/static/streaming-playlists/hls/2c31b849-dc3b-4022-9002-86bc492e4d5e/e27714fe-cfa7-4ae0-be65-968b0c51c5f8-master.m3u8'
 
-    viewerId.value = generateViewerId()
+    viewerId.value = userStore.displayName
 
     if (Hls.isSupported()) {
         const HlsWithP2P = HlsJsP2PEngine.injectMixin(Hls)
@@ -82,15 +103,15 @@ onMounted(() => {
                     })
 
                     hlsInstance.p2pEngine.addEventListener('onPeerError', (peer) => {
-                        console.log('onPeerError:', peer)
+                        // console.log('onPeerError:', peer)
                     })
 
                     hlsInstance.p2pEngine.addEventListener('onSegmentLoaded', (details) => {
-                        console.log('Segment Loaded:', details);
+                        // console.log('Segment Loaded:', details);
                     });
 
                     hlsInstance.p2pEngine.addEventListener('onSegmentError', (errorDetails) => {
-                        console.error('Error loading segment:', errorDetails);
+                        // console.error('Error loading segment:', errorDetails);
                     });
 
                     hlsInstance.p2pEngine.addEventListener('onChunkDownloaded', (bytesLength, downloadSource, peerId) => {
@@ -104,26 +125,55 @@ onMounted(() => {
             }
         })
 
-        hls.loadSource(source)
-        hls.attachMedia(video)
+        fetch(source).then(async (response) => {
+            let text = await response.text();
+            const m3u8Files = [...text.matchAll(/URI="([^"]+\.m3u8)"|^([^#\r\n]+\.m3u8)/gm)].map(match => match[1] || match[2]).filter(Boolean);
+
+            for (const element of m3u8Files) {
+                const url = 'https://streaming.emmcvietnam.com/static/streaming-playlists/hls/2c31b849-dc3b-4022-9002-86bc492e4d5e/'
+                const getStreaming = await fetch(url + element)
+                const streamingText = await getStreaming.text();
+                const modifiedStreamingText = streamingText.replace(/(^(?!#)|(?<=#EXT-X-MAP:URI="))[^"#\r\n]+\.mp4/gm, match => url + match);
+                const streamingBlobUrl = URL.createObjectURL(new Blob([modifiedStreamingText], { type: 'application/x-mpegURL' }))
+                const regex = new RegExp(element, 'g');
+                text = text.replace(regex, streamingBlobUrl);
+            }
+
+            // Tạo Blob từ text đã được cập nhật
+            const updatedBlob = new Blob([text], { type: 'application/x-mpegURL' });
+            const updatedBlobUrl = URL.createObjectURL(updatedBlob);
+
+            // Sử dụng updatedBlobUrl để load source
+            hls.loadSource(updatedBlobUrl);
+            hls.attachMedia(video);
+        })
+
+        // hls.loadSource(source)
+        // hls.attachMedia(video)
 
         hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-            const availableQualities = hls.levels.map((l) => l.height)
-
+            // Get the lowest quality level
+            const levels = hls.levels;
+            lowQuality.value = levels[0].height;
             // Initialize player
             player = new Plyr(video, {
                 quality: {
-                    default: availableQualities[0],
-                    options: availableQualities,
+                    default: levels[levels.length - 1].height,
+                    options: levels.map((level) => level.height),
                     forced: true,
-                    onChange: (newQuality) => updateQuality(newQuality)
+                    onChange: (newQuality) => {
+                        levels.forEach((level, levelIndex) => {
+                            if (level.height === newQuality) {
+                                hls.currentLevel = levelIndex;
+                                currentQuality.value = level.height;
+                            }
+                        });
+                        console.log('Quality changed to', newQuality);
+                    },
                 },
-                controls: [
-                    'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen', 'viewer-id'
-                ]
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen', 'viewer-id']
             })
 
-            // Add custom control for viewer ID
             player.on('ready', () => {
                 const viewerIdControl = `
                     <div class="plyr__controls__item plyr__control viewer-id-control">
@@ -131,17 +181,16 @@ onMounted(() => {
                     </div>
                 `
                 player.elements.controls.insertAdjacentHTML('beforeend', viewerIdControl)
+
+                checkViewingPermissions()
+
+                setInterval(() => {
+                    if (currentQuality.value > lowQuality.value) {
+                        checkViewingPermissions()
+                    }
+                }, 15000)
             })
         })
-
-        function updateQuality(newQuality) {
-            hls.levels.forEach((level, levelIndex) => {
-                if (level.height === newQuality) {
-                    hls.currentLevel = levelIndex
-                }
-            })
-            console.log({ newQuality });
-        }
     }
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = source

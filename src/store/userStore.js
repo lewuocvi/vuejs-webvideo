@@ -11,7 +11,8 @@ export const useUserStore = defineStore('userStore', {
 
     getters: {
         isAuthenticated: (state) => !!state.currentUser,
-        username: (state) => state.currentUser?.displayName || state.currentUser?.email
+        displayName: (state) => state.currentUser?.displayName || state.currentUser?.email || "Anonymous",
+        userPlanType: (state) => state.currentUser?.planType || 'free',
     },
 
     actions: {
@@ -54,13 +55,5 @@ export const useUserStore = defineStore('userStore', {
                 this.loading = false
             }
         },
-
-        setUser(user) {
-            this.currentUser = user
-        },
-
-        clearError() {
-            this.error = null
-        }
     }
 })

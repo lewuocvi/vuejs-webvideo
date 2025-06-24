@@ -28,37 +28,26 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { auth, signInWithEmailAndPassword, onAuthStateChanged } from '../firebase';
+import { useUserStore } from '../store/userStore'
 
+const userStore = useUserStore() // Use the userStore
 const email = ref('');
 const password = ref('');
-const error = ref('');
 const router = useRouter();
 
-onMounted(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Người dùng đã đăng nhập, chuyển hướng đến trang chủ
-            router.push('/');
-        }
-    });
+const error = userStore.error
 
-    // Cleanup function
-    return () => unsubscribe();
+onMounted(() => {
+    if (userStore.isAuthenticated) {
+        router.push('/'); // Chuyển hướng đến trang chủ
+    }
 });
 
 const loginEmailAndPassword = async () => {
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
-        const user = userCredential.user;
-        console.log('Đăng nhập thành công:', user);
-        error.value = '';
-        localStorage.setItem('token', user.accessToken);
+    await userStore.loginUser(email.value, password.value); // Thông qua userStore đăng nhập
+    if (userStore.isAuthenticated) {
         // Chuyển hướng sau khi đăng nhập thành công
         router.push('/'); // Chuyển hướng đến trang chủ
-    } catch (err) {
-        console.error('Lỗi đăng nhập:', err.message);
-        error.value = 'Email hoặc mật khẩu không đúng';
     }
 };
 
