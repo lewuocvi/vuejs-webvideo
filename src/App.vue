@@ -71,25 +71,20 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { auth, signOut, onAuthStateChanged } from '../src/firebase';
+import { useUserStore } from './store/userStore'
 
-const searchQuery = ref('')
 const router = useRouter()
-const user = ref()
+const userStore = useUserStore()
+const searchQuery = ref('')
+const user = ref(null)
 
-onMounted(() => {
-  onAuthStateChanged(auth, (currentUser) => {
-    user.value = !!currentUser
-  })
+onMounted(async () => {
+  await userStore.initializeAuthListener()
+  user.value = userStore.currentUser
 })
 
 const handleLogout = async () => {
-  try {
-    await signOut(auth)
-    router.push({ name: 'Home' })
-  } catch (error) {
-    console.error('Lỗi khi đăng xuất:', error)
-  }
+  await userStore.logoutUser()
 }
 
 const handleSearch = () => {

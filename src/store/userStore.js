@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
-import { auth } from '../firebase'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth'
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from '../firebase'
 
 export const useUserStore = defineStore('userStore', {
     state: () => ({
@@ -13,9 +12,20 @@ export const useUserStore = defineStore('userStore', {
         isAuthenticated: (state) => !!state.currentUser,
         displayName: (state) => state.currentUser?.displayName || state.currentUser?.email || "Anonymous",
         userPlanType: (state) => state.currentUser?.planType || 'free',
+        isAdmin: (state) => state.currentUser?.email === "lewuocvi@gmail.com" ? true : false
     },
 
     actions: {
+
+        async initializeAuthListener() {
+            return new Promise((resolve) => {
+                onAuthStateChanged(auth, (user) => {
+                    this.currentUser = user                    
+                    resolve(user)
+                })
+            })
+        },
+
         async registerUser(email, password, displayName) {
             this.loading = true
             this.error = null
@@ -54,6 +64,6 @@ export const useUserStore = defineStore('userStore', {
             } finally {
                 this.loading = false
             }
-        },
+        }
     }
 })

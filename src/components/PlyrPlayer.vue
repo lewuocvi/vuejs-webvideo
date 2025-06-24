@@ -1,7 +1,8 @@
 <template>
     <div class="max-w-3xl mx-auto pt-8">
         <video ref="videoEl" controls class="w-full rounded-xl shadow-lg"></video>
-        <div class="mt-4 bg-gray-100 p-4 rounded-lg shadow">
+
+        <div v-if="debug.value" class="mt-4 bg-gray-100 p-4 rounded-lg shadow">
             <h3 class="text-lg font-semibold mb-2">P2P Stats</h3>
             <div class="grid grid-cols-3 gap-4">
                 <div class="bg-white p-3 rounded shadow">
@@ -40,8 +41,15 @@ import { useUserStore } from '../store/userStore'
 import Plyr from 'plyr'
 import Hls from 'hls.js'
 import { HlsJsP2PEngine } from 'p2p-media-loader-hlsjs'
-
 import 'plyr/dist/plyr.css'
+
+const props = defineProps({
+    source: {
+        type: String,
+        required: true
+    }
+})
+
 
 const userStore = useUserStore() // Use the userStore
 const videoEl = ref(null)
@@ -50,10 +58,10 @@ let player = null
 const lowQuality = ref(0)
 const currentQuality = ref(0)
 
-const viewerId = ref('')
 const connectedPeers = ref(0)
 const totalDownloaded = ref(0)
 const totalUploaded = ref(0)
+const debug = ref(false)
 
 const formatBytes = (bytes) => {
     if (bytes === 0) return '0 Bytes'
@@ -75,10 +83,8 @@ const checkViewingPermissions = () => {
 }
 
 onMounted(() => {
+    //
     const video = videoEl.value
-    const source = 'https://streaming.emmcvietnam.com/static/streaming-playlists/hls/2c31b849-dc3b-4022-9002-86bc492e4d5e/e27714fe-cfa7-4ae0-be65-968b0c51c5f8-master.m3u8'
-
-    viewerId.value = userStore.displayName
 
     if (Hls.isSupported()) {
         const HlsWithP2P = HlsJsP2PEngine.injectMixin(Hls)
@@ -86,31 +92,19 @@ onMounted(() => {
         hls = new HlsWithP2P({
             p2p: {
                 core: {
-                    highDemandTimeWindow: 30, // 30 seconds
-                    simultaneousHttpDownloads: 3,
-                    webRtcMaxMessageSize: 64 * 1024, // 64 KB
-                    p2pNotReceivingBytesTimeoutMs: 10000, // 10 seconds
-                    p2pInactiveLoaderDestroyTimeoutMs: 15000, // 15 seconds
-                    httpNotReceivingBytesTimeoutMs: 8000, // 8 seconds
-                    httpErrorRetries: 2,
-                    p2pErrorRetries: 2,
+                    // highDemandTimeWindow: 30, // 30 seconds
+                    // simultaneousHttpDownloads: 3,
+                    // webRtcMaxMessageSize: 64 * 1024, // 64 KB
+                    // p2pNotReceivingBytesTimeoutMs: 10000, // 10 seconds
+                    // p2pInactiveLoaderDestroyTimeoutMs: 15000, // 15 seconds
+                    // httpNotReceivingBytesTimeoutMs: 8000, // 8 seconds
+                    // httpErrorRetries: 2,
+                    // p2pErrorRetries: 2,
                     announceTrackers: ["wss://tracker.webtorrent.dev", "wss://tracker.openwebtorrent.com"],
                     rtcConfig: {
-                        iceServers: [
-                            { urls: "stun:stun.l.google.com:19302" },
-                            { urls: "stun:stun.l.google.com:5349" },
-                            { urls: "stun:stun1.l.google.com:3478" },
-                            { urls: "stun:stun1.l.google.com:5349" },
-                            { urls: "stun:stun2.l.google.com:19302" },
-                            { urls: "stun:stun2.l.google.com:5349" },
-                            { urls: "stun:stun3.l.google.com:3478" },
-                            { urls: "stun:stun3.l.google.com:5349" },
-                            { urls: "stun:stun4.l.google.com:19302" },
-                            { urls: "stun:stun4.l.google.com:5349" }
-                        ]
+                        iceServers: [{ urls: "stun:stunserver2024.stunprotocol.org" }, { urls: '"stun:stun.framasoft.org' }]
                     },
-                    swarmId: '2c31b849-dc3b-4022-9002-86bc492e4d5e',
-
+                    swarmId: btoa(props.source).slice(-30),
                 },
                 onHlsJsCreated: (hlsInstance) => {
                     hlsInstance.p2pEngine.addEventListener('onPeerConnect', (peer) => {
@@ -146,7 +140,7 @@ onMounted(() => {
             }
         })
 
-        fetch(source).then(async (response) => {
+        fetch(props.source).then(async (response) => {
             let text = await response.text();
             const m3u8Files = [...text.matchAll(/URI="([^"]+\.m3u8)"|^([^#\r\n]+\.m3u8)/gm)].map(match => match[1] || match[2]).filter(Boolean);
 
@@ -168,9 +162,6 @@ onMounted(() => {
             hls.loadSource(updatedBlobUrl);
             hls.attachMedia(video);
         })
-
-        // hls.loadSource(source)
-        // hls.attachMedia(video)
 
         hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
             // Get the lowest quality level
@@ -196,12 +187,17 @@ onMounted(() => {
             })
 
             player.on('ready', () => {
-                const viewerIdControl = `
-                    <div class="plyr__controls__item plyr__control viewer-id-control">
-                        <span>${viewerId.value}</span>
-                    </div>
-                `
-                player.elements.controls.insertAdjacentHTML('beforeend', viewerIdControl)
+
+                setTimeout(() => {
+                    //
+                    const viewerIdControl = `
+                        <div class="plyr__controls__item plyr__control viewer-id-control">
+                            <span>${userStore.displayName}</span>
+                        </div>
+                    `
+                    player.elements.controls.insertAdjacentHTML('beforeend', viewerIdControl)
+                    //
+                }, 5000);
 
                 checkViewingPermissions()
 
@@ -214,7 +210,7 @@ onMounted(() => {
         })
     }
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = source
+        video.src = props.source
     }
 })
 
