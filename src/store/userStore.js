@@ -1,0 +1,66 @@
+import { defineStore } from 'pinia'
+import { auth } from '../firebase'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth'
+
+export const useUserStore = defineStore('userStore', {
+    state: () => ({
+        currentUser: null,
+        loading: false,
+        error: null
+    }),
+
+    getters: {
+        isAuthenticated: (state) => !!state.currentUser,
+        username: (state) => state.currentUser?.displayName || state.currentUser?.email
+    },
+
+    actions: {
+        async registerUser(email, password, displayName) {
+            this.loading = true
+            this.error = null
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+                await updateProfile(userCredential.user, { displayName })
+                this.currentUser = userCredential.user
+            } catch (error) {
+                this.error = error.message
+            } finally {
+                this.loading = false
+            }
+        },
+
+        async loginUser(email, password) {
+            this.loading = true
+            this.error = null
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password)
+                this.currentUser = userCredential.user
+            } catch (error) {
+                this.error = error.message
+            } finally {
+                this.loading = false
+            }
+        },
+
+        async logoutUser() {
+            this.loading = true
+            this.error = null
+            try {
+                await signOut(auth)
+                this.currentUser = null
+            } catch (error) {
+                this.error = error.message
+            } finally {
+                this.loading = false
+            }
+        },
+
+        setUser(user) {
+            this.currentUser = user
+        },
+
+        clearError() {
+            this.error = null
+        }
+    }
+})

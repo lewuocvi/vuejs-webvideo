@@ -53,6 +53,7 @@ const loginEmailAndPassword = async () => {
         const user = userCredential.user;
         console.log('Đăng nhập thành công:', user);
         error.value = '';
+        localStorage.setItem('token', user.accessToken);
         // Chuyển hướng sau khi đăng nhập thành công
         router.push('/'); // Chuyển hướng đến trang chủ
     } catch (err) {

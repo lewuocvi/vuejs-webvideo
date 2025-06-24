@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="submitComment" class="mb-6">
+    <form @submit.prevent="submitComment" class="mt-6">
         <textarea v-model="commentContent" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
             rows="4" placeholder="Viết bình luận của bạn..." required></textarea>
         <button type="submit"

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 8000 --host 0.0.0.0",
     "test": "json-server --watch db.json --port 3000",
     "build": "vite build",
     "firebase-deploy": "firebase deploy --only hosting",
@@ -15,14 +15,19 @@
     "@vueuse/head": "^2.0.0",
     "axios": "^1.10.0",
     "daisyui": "^5.0.43",
+    "date-fns": "^4.1.0",
     "firebase": "^11.9.1",
+    "hls.js": "^1.5.20",
+    "p2p-media-loader-hlsjs": "^2.2.1",
     "pinia": "^3.0.3",
+    "plyr": "^3.7.8",
     "tailwindcss": "^4.1.10",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-node-polyfills": "^0.23.0"
   }
 }

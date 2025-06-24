@@ -2,7 +2,11 @@
     <div class="container mx-auto px-4 py-8">
         <div v-if="postStore.currentPost" class="bg-white overflow-hidden">
             <div class="p-6">
+                
                 <div class="text-gray-600 text-lg leading-relaxed mb-6" v-html="formattedContent"></div>
+
+                <VideoPlayer src="https://e.streamqq.com/videos/68484c0a19bd2ece030756dd/master.m3u8" />
+
                 <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ postStore.currentPost.title }}</h1>
                 <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-500">
@@ -28,8 +32,8 @@
         <div v-if="postStore.currentPost" class="bg-white overflow-hidden mt-4">
             <div class="p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4">Bình luận</h2>
+                <CommentList :comments="postStore.comments" />
                 <CommentForm @add-comment="addComment" />
-                <CommentList :comments="postStore.currentPost?.comments" />
             </div>
         </div>
     </div>
@@ -40,6 +44,7 @@ import { onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePostStore } from '../store/postStore'
 import { useHead } from '@vueuse/head'
+import VideoPlayer from '../components/VideoPlayer.vue'
 import CommentForm from '../components/CommentForm.vue'
 import CommentList from '../components/CommentList.vue'
 
@@ -70,41 +75,27 @@ const postImage = computed(() => {
     return postStore.currentPost?.image || 'https://source.unsplash.com/400x200/?technology'
 })
 
-watch(() => postStore.currentPost, (newPost) => {
-    if (newPost) {
-        useHead({
-            title: newPost.title,
-            meta: [
-                { name: 'description', content: metaDescription.value },
-                { property: 'og:title', content: newPost.title },
-                { property: 'og:description', content: metaDescription.value },
-                { property: 'og:image', content: postImage.value },
-                { property: 'og:type', content: 'article' },
-                { name: 'twitter:card', content: 'summary_large_image' },
-                { name: 'twitter:title', content: newPost.title },
-                { name: 'twitter:description', content: metaDescription.value },
-                { name: 'twitter:image', content: postImage.value },
-            ],
-        })
-    }
-}, { immediate: true })
+// watch(() => postStore.currentPost, (newPost) => {
+//     if (newPost) {
+//         useHead({
+//             title: newPost.title,
+//             meta: [
+//                 { name: 'description', content: metaDescription.value },
+//                 { property: 'og:title', content: newPost.title },
+//                 { property: 'og:description', content: metaDescription.value },
+//                 { property: 'og:image', content: postImage.value },
+//                 { property: 'og:type', content: 'article' },
+//                 { name: 'twitter:card', content: 'summary_large_image' },
+//                 { name: 'twitter:title', content: newPost.title },
+//                 { name: 'twitter:description', content: metaDescription.value },
+//                 { name: 'twitter:image', content: postImage.value },
+//             ],
+//         })
+//     }
+// }, { immediate: true })
 
-const addComment = (comment) => {
-    if (!postStore.currentPost) return
-
-    const newComment = {
-        id: Date.now(),
-        content: comment,
-        author: 'Anonymous',
-        createdAt: new Date().toISOString(),
-        replies: []
-    }
-
-    if (!postStore.currentPost.comments) postStore.currentPost.comments = []
-
-    if (Array.isArray(postStore.currentPost.comments)) {
-        postStore.currentPost.comments.unshift(newComment)
-    }
+const addComment = async (commentContent) => {
+    await postStore.addComment(route.params.id, { content: commentContent })
 }
 
 </script>
