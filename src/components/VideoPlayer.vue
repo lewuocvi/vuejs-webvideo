@@ -46,7 +46,7 @@ const formatBytes = (bytes) => {
 
 onMounted(() => {
     const video = videoEl.value
-    const source = 'https://streaming.emmcvietnam.com/static/streaming-playlists/hls/2c31b849-dc3b-4022-9002-86bc492e4d5e/b615268e-3b99-46b0-a1cd-b91f174878a7-master.m3u8'
+    const source = 'https://streaming.emmcvietnam.com/static/streaming-playlists/hls/2c31b849-dc3b-4022-9002-86bc492e4d5e/e27714fe-cfa7-4ae0-be65-968b0c51c5f8-master.m3u8'
 
     if (Hls.isSupported()) {
         const HlsWithP2P = HlsJsP2PEngine.injectMixin(Hls)
