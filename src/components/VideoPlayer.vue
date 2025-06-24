@@ -17,6 +17,10 @@
                     <p class="text-2xl font-bold">{{ formatBytes(totalUploaded) }}</p>
                 </div>
             </div>
+            <div class="mt-4 bg-white p-3 rounded shadow">
+                <p class="text-sm text-gray-600">Viewer ID</p>
+                <p class="text-xl font-semibold">{{ viewerId }}</p>
+            </div>
         </div>
     </div>
 </template>
@@ -32,6 +36,7 @@ const videoEl = ref(null)
 let hls = null
 let player = null
 
+const viewerId = ref('')
 const connectedPeers = ref(0)
 const totalDownloaded = ref(0)
 const totalUploaded = ref(0)
@@ -44,9 +49,15 @@ const formatBytes = (bytes) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
+const generateViewerId = () => {
+    return 'viewer-' + Math.random().toString(36).substr(2, 9)
+}
+
 onMounted(() => {
     const video = videoEl.value
     const source = 'https://streaming.emmcvietnam.com/static/streaming-playlists/hls/2c31b849-dc3b-4022-9002-86bc492e4d5e/e27714fe-cfa7-4ae0-be65-968b0c51c5f8-master.m3u8'
+
+    viewerId.value = generateViewerId()
 
     if (Hls.isSupported()) {
         const HlsWithP2P = HlsJsP2PEngine.injectMixin(Hls)
@@ -106,7 +117,20 @@ onMounted(() => {
                     options: availableQualities,
                     forced: true,
                     onChange: (newQuality) => updateQuality(newQuality)
-                }
+                },
+                controls: [
+                    'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen', 'viewer-id'
+                ]
+            })
+
+            // Add custom control for viewer ID
+            player.on('ready', () => {
+                const viewerIdControl = `
+                    <div class="plyr__controls__item plyr__control viewer-id-control">
+                        <span>${viewerId.value}</span>
+                    </div>
+                `
+                player.elements.controls.insertAdjacentHTML('beforeend', viewerIdControl)
             })
         })
 
@@ -116,13 +140,12 @@ onMounted(() => {
                     hls.currentLevel = levelIndex
                 }
             })
+            console.log({ newQuality });
         }
     }
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = source
     }
-
-    // player = new Plyr(video)
 })
 
 onUnmounted(() => {
@@ -134,3 +157,17 @@ onUnmounted(() => {
     }
 })
 </script>
+
+<style>
+.viewer-id-control {
+    position: absolute;
+    top: 0px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    pointer-events: none;
+}
+</style>
