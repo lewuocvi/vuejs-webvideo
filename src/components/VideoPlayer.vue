@@ -124,7 +124,7 @@ onMounted(() => {
                     })
 
                     hlsInstance.p2pEngine.addEventListener('onPeerError', (peer) => {
-                        // console.log('onPeerError:', peer)
+                        console.log('onPeerError:', peer)
                     })
 
                     hlsInstance.p2pEngine.addEventListener('onSegmentLoaded', (details) => {
