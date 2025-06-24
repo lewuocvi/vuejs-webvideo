@@ -86,10 +86,31 @@ onMounted(() => {
         hls = new HlsWithP2P({
             p2p: {
                 core: {
+                    highDemandTimeWindow: 30, // 30 seconds
+                    simultaneousHttpDownloads: 3,
+                    webRtcMaxMessageSize: 64 * 1024, // 64 KB
+                    p2pNotReceivingBytesTimeoutMs: 10000, // 10 seconds
+                    p2pInactiveLoaderDestroyTimeoutMs: 15000, // 15 seconds
+                    httpNotReceivingBytesTimeoutMs: 8000, // 8 seconds
+                    httpErrorRetries: 2,
+                    p2pErrorRetries: 2,
+                    announceTrackers: ["wss://tracker.webtorrent.dev", "wss://tracker.openwebtorrent.com"],
+                    rtcConfig: {
+                        iceServers: [
+                            { urls: "stun:stun.l.google.com:19302" },
+                            { urls: "stun:stun.l.google.com:5349" },
+                            { urls: "stun:stun1.l.google.com:3478" },
+                            { urls: "stun:stun1.l.google.com:5349" },
+                            { urls: "stun:stun2.l.google.com:19302" },
+                            { urls: "stun:stun2.l.google.com:5349" },
+                            { urls: "stun:stun3.l.google.com:3478" },
+                            { urls: "stun:stun3.l.google.com:5349" },
+                            { urls: "stun:stun4.l.google.com:19302" },
+                            { urls: "stun:stun4.l.google.com:5349" }
+                        ]
+                    },
                     swarmId: '2c31b849-dc3b-4022-9002-86bc492e4d5e',
-                    trackers: [
-                        'wss://tracker.webtorrent.dev'
-                    ]
+
                 },
                 onHlsJsCreated: (hlsInstance) => {
                     hlsInstance.p2pEngine.addEventListener('onPeerConnect', (peer) => {
