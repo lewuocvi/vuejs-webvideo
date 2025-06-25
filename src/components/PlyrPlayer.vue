@@ -140,28 +140,31 @@ onMounted(() => {
             }
         })
 
-        fetch(props.source).then(async (response) => {
-            let text = await response.text();
-            const m3u8Files = [...text.matchAll(/URI="([^"]+\.m3u8)"|^([^#\r\n]+\.m3u8)/gm)].map(match => match[1] || match[2]).filter(Boolean);
+        // fetch(props.source).then(async (response) => {
+        //     let text = await response.text();
+        //     const m3u8Files = [...text.matchAll(/URI="([^"]+\.m3u8)"|^([^#\r\n]+\.m3u8)/gm)].map(match => match[1] || match[2]).filter(Boolean);
 
-            for (const element of m3u8Files) {
-                const url = 'https://streaming.emmcvietnam.com/static/streaming-playlists/hls/2c31b849-dc3b-4022-9002-86bc492e4d5e/'
-                const getStreaming = await fetch(url + element)
-                const streamingText = await getStreaming.text();
-                const modifiedStreamingText = streamingText.replace(/(^(?!#)|(?<=#EXT-X-MAP:URI="))[^"#\r\n]+\.mp4/gm, match => url + match);
-                const streamingBlobUrl = URL.createObjectURL(new Blob([modifiedStreamingText], { type: 'application/x-mpegURL' }))
-                const regex = new RegExp(element, 'g');
-                text = text.replace(regex, streamingBlobUrl);
-            }
+        //     for (const element of m3u8Files) {
+        //         const url = 'http://localhost:3000/01eb8763-0d99-4940-888d-adc518b26b94/'
+        //         const getStreaming = await fetch(url + element)
+        //         const streamingText = await getStreaming.text();
+        //         const modifiedStreamingText = streamingText.replace(/(^(?!#)|(?<=#EXT-X-MAP:URI="))[^"#\r\n]+\.mp4/gm, match => url + match);
+        //         const streamingBlobUrl = URL.createObjectURL(new Blob([modifiedStreamingText], { type: 'application/x-mpegURL' }))
+        //         const regex = new RegExp(element, 'g');
+        //         text = text.replace(regex, streamingBlobUrl);
+        //     }
 
-            // Tạo Blob từ text đã được cập nhật
-            const updatedBlob = new Blob([text], { type: 'application/x-mpegURL' });
-            const updatedBlobUrl = URL.createObjectURL(updatedBlob);
+        //     // Tạo Blob từ text đã được cập nhật
+        //     const updatedBlob = new Blob([text], { type: 'application/x-mpegURL' });
+        //     const updatedBlobUrl = URL.createObjectURL(updatedBlob);
 
-            // Sử dụng updatedBlobUrl để load source
-            hls.loadSource(updatedBlobUrl);
-            hls.attachMedia(video);
-        })
+        //     // Sử dụng updatedBlobUrl để load source
+        //     // hls.loadSource(updatedBlobUrl);
+        //     // hls.attachMedia(video);
+        // })
+
+        hls.loadSource(props.source);
+        hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
             // Get the lowest quality level

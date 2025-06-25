@@ -11,7 +11,7 @@ export const useUserStore = defineStore('userStore', {
     getters: {
         isAuthenticated: (state) => !!state.currentUser,
         displayName: (state) => state.currentUser?.displayName || state.currentUser?.email || "Anonymous",
-        userPlanType: (state) => state.currentUser?.planType || 'free',
+        userPlanType: (state) => state.currentUser?.planType || 'active',
         isAdmin: (state) => state.currentUser?.email === "lewuocvi@gmail.com" ? true : false
     },
 
