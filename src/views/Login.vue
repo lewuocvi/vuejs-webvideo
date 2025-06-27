@@ -57,6 +57,8 @@ const acceptTerms = ref(false);
 const createUser = async () => {
   try {
     //
+    userStore.error = null; // Clear error message after successful registration or login
+    //
     if (!email.value.includes("@")) {
       throw new Error("Email thiếu ký tự @");
     }
@@ -75,8 +77,6 @@ const createUser = async () => {
       localStorage.setItem("token", userStore.token); // Store user token in local storage
       router.push("/"); // Redirect to home page after successful registration
     }
-    //
-    userStore.error = null; // Clear error message after successful registration or login
     //
   } catch (error) {
     userStore.error = error.message;

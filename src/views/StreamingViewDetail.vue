@@ -65,7 +65,7 @@ watch(
   (streaming) => {
     if (streaming) {
       // Cập nhật title
-      document.title = streaming.title;
+      document.title = streaming.name;
 
       // Cập nhật các thẻ meta
       updateMetaTag("description", metaDescription.value);
@@ -73,7 +73,7 @@ watch(
       updateMetaTag("og:description", metaDescription.value, "property");
       updateMetaTag("og:image", streaming.thumbnail, "property");
       updateMetaTag("og:type", "article", "property");
-      updateMetaTag("twitter:card", "summary_large_image");
+      updateMetaTag("twitter:card", streaming.thumbnail);
       updateMetaTag("twitter:title", streaming.name);
       updateMetaTag("twitter:description", metaDescription.value);
       updateMetaTag("twitter:image", streaming.thumbnail);
