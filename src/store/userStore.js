@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import { watch } from "vue";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -61,10 +60,7 @@ export const useUserStore = defineStore("userStore", {
     async logoutUser() {
       localStorage.removeItem("token");
       this.token = null;
-      this.user = null;
-      this.status = null;
-      this.error = null;
-      this.loading = false;
+      location.reload();
     },
   },
 });
