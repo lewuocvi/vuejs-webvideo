@@ -1,66 +1,93 @@
 <template>
-    <div class="container mx-auto px-4 py-10">
-        <form @submit.prevent="createUser" class="max-w-md mx-auto">
-            <div class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-                <div class="mb-4">
-                    <label class="input validator">
-                        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none"
-                                stroke="currentColor">
-                                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                            </g>
-                        </svg>
-                        <input v-model="email" type="email" placeholder="mail@site.com" required />
-                    </label>
-                    <div class="validator-hint hidden">Enter valid email address</div>
-                </div>
-                <div class="mb-6">
-                    <label class="input validator">
-                        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none"
-                                stroke="currentColor">
-                                <path
-                                    d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z">
-                                </path>
-                                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
-                            </g>
-                        </svg>
-                        <input v-model="password" type="password" required placeholder="Password" minlength="8"
-                            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                            title="Must be more than 8 characters, including number, lowercase letter, uppercase letter" />
-                    </label>
-                    <p class="validator-hint hidden">
-                        Must be more than 8 characters, including
-                        <br />At least one number <br />At least one lowercase letter <br />At least one uppercase
-                        letter
-                    </p>
-                </div>
-                <p v-if="error" style="color: red">{{ error }}</p>
-                <button type="submit" class="btn btn-dash"> Đăng ký </button>
+  <div class="flex items-center justify-center bg-gray-100">
+    <div class="container mx-auto px-4 py-10 max-w-md">
+      <div class="card bg-white shadow-xl card-border border-base-300 card-sm overflow-hidden">
+        <div class="border-base-300 border-b">
+          <div class="flex items-center gap-2 p-4">
+            <div class="grow">
+              <div class="flex items-center gap-2 text-lg font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 opacity-40">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                </svg>
+                Tạo tài khoản mới
+              </div>
             </div>
-        </form>
+            <router-link to="/login" class="link link-hover">Đăng nhập</router-link>
+          </div>
+        </div>
+        <div class="card-body gap-4">
+          <p class="text-sm opacity-60">Đăng ký miễn phí và chỉ mất một phút</p>
+          <div class="flex flex-col gap-3">
+            <label class="input input-bordered flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70">
+                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z"></path>
+              </svg>
+              <input type="email" v-model="email" class="grow" placeholder="Email" />
+            </label>
+            <label class="input input-bordered flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70">
+                <path fill-rule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z" clip-rule="evenodd"></path>
+              </svg>
+              <input type="password" v-model="password" class="grow" placeholder="Password" />
+            </label>
+          </div>
+          <span v-if="userStore.error" class="text-sm text-red-500 flex items-center gap-2 px-1"> <span class="inline-block w-2 h-2 bg-red-500 rounded-full"></span> {{ userStore.error }} </span>
+          <label class="flex items-center gap-2 text-sm"> <input type="checkbox" v-model="acceptTerms" class="checkbox checkbox-sm" /> Đồng ý với các điều khoản dịch vụ </label>
+          <label class="flex items-center gap-2 text-sm"> <input type="checkbox" v-model="subscribeToSpam" class="checkbox checkbox-sm" /> Đăng ký nhận email </label>
+          <div class="card-actions items-center gap-4 mt-4">
+            <button @click="createUser" type="button" class="btn btn-primary w-full">Đăng ký tài khoản</button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { auth, createUserWithEmailAndPassword } from '../firebase';
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "../store/userStore";
 
-const email = ref('');
-const password = ref('');
-const error = ref('');
+const router = useRouter();
+const userStore = useUserStore();
+
+const email = ref("");
+const password = ref("");
+const acceptTerms = ref(false);
+const subscribeToSpam = ref(false);
 
 const createUser = async () => {
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
-        const user = userCredential.user;
-        console.log('Đăng ký thành công:', user);
-        error.value = '';
-    } catch (err) {
-        console.error('Lỗi đăng ký:', err.message);
-        error.value = err.message;
+  try {
+    //
+    if (!email.value.includes("@")) {
+      throw new Error("Email thiếu ký tự @");
     }
+
+    if (password.value.length < 8) {
+      throw new Error("Mật khẩu phải phải ít nhất 8 ký tự");
+    }
+
+    if (!acceptTerms.value) {
+      throw new Error("Bạn chưa đồng ý với điều khoản dịch vụ");
+    }
+
+    await userStore.createUser({ email: email.value, password: password.value, acceptTerms: acceptTerms.value, subscribeToSpam: subscribeToSpam.value });
+
+    if (userStore.isAuthenticated) {
+      localStorage.setItem("token", userStore.token); // Store user token in local storage
+      router.push("/"); // Redirect to home page after successful registration
+    }
+    //
+    userStore.error = null; // Clear error message after successful registration or login
+    //
+  } catch (error) {
+    userStore.error = error.message;
+  }
 };
 
+onMounted(() => {
+  userStore.error = null; // Clear error message when component is mounted
+});
+
+//
 </script>

@@ -1,69 +1,70 @@
-import { defineStore } from 'pinia'
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from '../firebase'
+import { defineStore } from "pinia";
+import { watch } from "vue";
+import axios from "axios";
 
-export const useUserStore = defineStore('userStore', {
-    state: () => ({
-        currentUser: null,
-        loading: false,
-        error: null
-    }),
+const API_URL = import.meta.env.VITE_API_URL;
 
-    getters: {
-        isAuthenticated: (state) => !!state.currentUser,
-        displayName: (state) => state.currentUser?.displayName || state.currentUser?.email || "Anonymous",
-        userPlanType: (state) => state.currentUser?.planType || 'active',
-        isAdmin: (state) => state.currentUser?.email === "lewuocvi@gmail.com" ? true : false
+export const useUserStore = defineStore("userStore", {
+  state: () => ({
+    loading: false,
+    error: null,
+    token: null,
+    user: null,
+    status: null,
+  }),
+
+  getters: {
+    isAuthenticated: ({ user }) => !!user,
+    displayName: ({ user }) => user?.username || user?.email || "Anonymous",
+    userPlanType: ({ user }) => user?.planType || "active",
+    isAdmin: ({ user }) => user?.rule || false,
+  },
+
+  actions: {
+    //
+
+    async fetchUserData(endpoint, payload) {
+      try {
+        const { data } = await axios.post(API_URL + endpoint, JSON.stringify(payload), { headers: { Authorization: `Bearer ${this.token}`, "Content-Type": "application/json" } });
+        for (const element of Object.keys(data)) {
+          this[element] = data[element];
+          console.log(element, data[element]);
+        }
+      } catch (error) {
+        this.error = error.message || "An unexpected error occurred";
+      }
     },
 
-    actions: {
+    async createUser(payload) {
+      await this.fetchUserData("/register", payload);
+    },
 
-        async initializeAuthListener() {
-            return new Promise((resolve) => {
-                onAuthStateChanged(auth, (user) => {
-                    this.currentUser = user                    
-                    resolve(user)
-                })
-            })
-        },
+    async signin(payload) {
+      await this.fetchUserData("/login", payload);
+    },
 
-        async registerUser(email, password, displayName) {
-            this.loading = true
-            this.error = null
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-                await updateProfile(userCredential.user, { displayName })
-                this.currentUser = userCredential.user
-            } catch (error) {
-                this.error = error.message
-            } finally {
-                this.loading = false
-            }
-        },
-
-        async loginUser(email, password) {
-            this.loading = true
-            this.error = null
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password)
-                this.currentUser = userCredential.user
-            } catch (error) {
-                this.error = error.message
-            } finally {
-                this.loading = false
-            }
-        },
-
-        async logoutUser() {
-            this.loading = true
-            this.error = null
-            try {
-                await signOut(auth)
-                this.currentUser = null
-            } catch (error) {
-                this.error = error.message
-            } finally {
-                this.loading = false
-            }
+    async getUser() {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const endpoint = API_URL + "/user";
+        const { data } = await axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } });
+        for (const element of Object.keys(data)) {
+          this[element] = data[element];
+          console.log(element, data[element]);
         }
-    }
-})
+      } catch (error) {
+        this.error = error.message || "An unexpected error occurred";
+      }
+    },
+
+    async logoutUser() {
+      localStorage.removeItem("token");
+      this.token = null;
+      this.user = null;
+      this.status = null;
+      this.error = null;
+      this.loading = false;
+    },
+  },
+});

@@ -12,12 +12,12 @@
 
 <script setup>
 import { onMounted } from "vue";
-import { useUserStore } from "./store/userStore";
+import { useUserStore } from "../src/store/userStore";
 import NavbarWithDropdown from "./components/Navbar-with-dropdown.vue";
 
 const userStore = useUserStore();
 
 onMounted(async () => {
-  await userStore.initializeAuthListener();
+  await userStore.getUser();
 });
 </script>
