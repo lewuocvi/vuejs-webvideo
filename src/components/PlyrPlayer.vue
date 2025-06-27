@@ -117,8 +117,9 @@ const handleContinue = () => {
 };
 
 const checkViewingPermissions = () => {
-  if (userStore.userPlanType !== "active" && player.value) {
+  if (userStore.status !== "active") {
     player.value.quality = lowQuality.value;
+    player.value.pause();
     document.getElementById("my_modal_1").showModal();
   }
 };

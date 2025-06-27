@@ -1,10 +1,11 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto">
     <div v-if="streamingStore.streaming" class="bg-white overflow-hidden">
       <div class="p-6">
         <PlyrPlayer :source="generateLinkProxy(streamingStore.streaming.playlist)" />
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ streamingStore.streaming.title }}</h1>
+        <h1 class="text-2xl font-bold text-gray-800 m-4">{{ streamingStore.streaming.name }}</h1>
+
         <div class="flex justify-between items-center">
           <span class="text-sm text-gray-500"> Đăng ngày: {{ new Date(streamingStore.streaming.created_at).toLocaleDateString("vi-VN") }} </span>
 
