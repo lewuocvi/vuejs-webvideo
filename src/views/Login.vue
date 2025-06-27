@@ -50,7 +50,7 @@ import { useUserStore } from "../store/userStore";
 const router = useRouter();
 const userStore = useUserStore();
 
-const email = ref("lewuocvi@gmail.com");
+const email = ref("");
 const password = ref("");
 const acceptTerms = ref(false);
 

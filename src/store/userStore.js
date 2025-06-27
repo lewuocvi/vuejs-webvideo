@@ -16,7 +16,7 @@ export const useUserStore = defineStore("userStore", {
   getters: {
     isAuthenticated: ({ user }) => !!user,
     displayName: ({ user }) => user?.username || user?.email || "Anonymous",
-    userPlanType: ({ user }) => user?.planType || "active",
+    isActive: ({ user }) => user?.status === "active",
     isAdmin: ({ user }) => user?.rule || false,
   },
 
