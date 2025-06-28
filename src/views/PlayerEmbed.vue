@@ -39,7 +39,7 @@ const data = ref(null);
 const source = ref(null);
 const uuid = ref(route.query.uuid);
 const randomId = ref(null);
-const username = ref(null);
+const email = ref(null);
 const currentQuality = ref(0);
 const lowQuality = ref(0);
 
@@ -66,8 +66,8 @@ const decodeQueryData = () => {
   if (route.query.data) {
     try {
       const decodedData = atob(route.query.data);
-      data.value = JSON.parse(decodedData);
-      username.value = data.value?.username;
+      const { email } = JSON.parse(decodedData);
+      email.value = email;
     } catch (err) {
       console.error("Error decoding or parsing data:", err);
     }
@@ -78,11 +78,10 @@ const setupPlayerEvents = () => {
   player.value.on("ready", () => {
     const viewerIdControl = `
       <div class="plyr__controls__item plyr__control viewer-id-control">
-        <span>${username.value || "......"}</span>
+        <span>${email.value || "......"}</span>
       </div>
     `;
     player.value.elements.controls.insertAdjacentHTML("beforeend", viewerIdControl);
-    sendMessageToParent({ type: "playerReady", data: data.value });
   });
 
   player.value.on("play", () => sendMessageToParent({ type: "play" }));
@@ -146,7 +145,7 @@ const initializeHLS = (m3u8) => {
 
   decodeQueryData();
 
-  if (!data.value || !data.value.username) {
+  if (!email.value) {
     error.value = "You don't have permission to view this content";
     return;
   }
@@ -191,5 +190,13 @@ onMounted(fetchStreamingData);
 
 watchEffect(() => {
   initializeHLS(source.value);
+});
+
+watchEffect(() => {
+  if (currentQuality.value > lowQuality.value) {
+    const response = fetch(`https://emmcvietnam.com/u/lewuocvi`, { headers: { Accept: "application/json" } });
+
+    player.value.quality = lowQuality.value;
+  }
 });
 </script>
