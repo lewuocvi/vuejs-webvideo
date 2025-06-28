@@ -35,7 +35,6 @@ const loading = ref(true);
 const videoEl = ref(null);
 const error = ref(null);
 const player = ref(null);
-const data = ref(null);
 const source = ref(null);
 const uuid = ref(route.query.uuid);
 const randomId = ref(null);
@@ -59,18 +58,6 @@ const generateRandomId = (length = 32) => {
 const sendMessageToParent = (message) => {
   if (window.parent !== window) {
     window.parent.postMessage(message, "*");
-  }
-};
-
-const decodeQueryData = () => {
-  if (route.query.data) {
-    try {
-      const decodedData = atob(route.query.data);
-      const { email } = JSON.parse(decodedData);
-      email.value = email;
-    } catch (err) {
-      console.error("Error decoding or parsing data:", err);
-    }
   }
 };
 
@@ -140,6 +127,18 @@ const initializePlayer = (hls, video) => {
   });
 };
 
+const decodeQueryData = () => {
+  if (route.query.data) {
+    try {
+      const decodedData = atob(route.query.data);
+      const data = JSON.parse(decodedData);
+      email.value = data.email;
+    } catch (err) {
+      console.error("Error decoding or parsing data:", err);
+    }
+  }
+};
+
 const initializeHLS = (m3u8) => {
   if (!m3u8) return;
 
@@ -161,12 +160,6 @@ const initializeHLS = (m3u8) => {
   initializePlayer(hls, video);
 
   window.addEventListener("message", messageHandler);
-
-  onUnmounted(() => {
-    destroy();
-    player.value?.destroy();
-    window.removeEventListener("message", messageHandler);
-  });
 };
 
 const fetchStreamingData = async () => {
@@ -192,11 +185,16 @@ watchEffect(() => {
   initializeHLS(source.value);
 });
 
-watchEffect(() => {
+watchEffect(async () => {
   if (currentQuality.value > lowQuality.value) {
-    const response = fetch(`https://emmcvietnam.com/u/lewuocvi`, { headers: { Accept: "application/json" } });
-
-    player.value.quality = lowQuality.value;
+    const response = await fetch(`${API_URL}/subscription/?email=lewuocvi@gmail.com`);
+    const { results } = await response.json();
+    const subscribed = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status })).filter(({ end_date, status }) => status === "active" && end_date > Date.now());
+    if (subscribed.length === 0) {
+      player.value.quality = lowQuality.value;
+      console.log("Subscription expired. Lowering quality to", lowQuality.value);
+      return;
+    }
   }
 });
 </script>
