@@ -99,6 +99,30 @@ const messageHandler = (event) => {
   }
 };
 
+const showWarningDialog = () => {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("div");
+    dialog.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+          <h3 class="text-lg font-bold mb-4">Thông báo về Đăng ký</h3>
+          <p class="mb-4">Đăng ký của bạn đã hết hạn. Chất lượng video đã được giảm để phù hợp với gói hiện tại của bạn.</p>
+          <button id="continueBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Tiếp tục xem chất lượng thấp
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    const continueBtn = dialog.querySelector("#continueBtn");
+    continueBtn.addEventListener("click", () => {
+      document.body.removeChild(dialog);
+      resolve(true);
+    });
+  });
+};
+
 const initializePlayer = (hls, video) => {
   hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     const levels = hls.levels;
@@ -187,14 +211,24 @@ watchEffect(() => {
 
 watchEffect(async () => {
   if (currentQuality.value > lowQuality.value) {
-    const response = await fetch(`${API_URL}/subscription/?email=lewuocvi@gmail.com`);
+    const response = await fetch(`${API_URL}/subscription/?email=${email.value}`);
     const { results } = await response.json();
-    const subscribed = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status })).filter(({ end_date, status }) => status === "active" && end_date > Date.now());
+    const subscribed = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status })).filter(({ end_date, status }) => status === "active" && end_date.getTime() > Date.now());
+    console.log({ subscribed });
     if (subscribed.length === 0) {
       player.value.quality = lowQuality.value;
+      player.value.pause();
       console.log("Subscription expired. Lowering quality to", lowQuality.value);
+
+      // Show warning dialog
+      const confirmed = await showWarningDialog();
+      if (confirmed) {
+        player.value.play();
+      }
       return;
     }
   }
 });
+
+//
 </script>
