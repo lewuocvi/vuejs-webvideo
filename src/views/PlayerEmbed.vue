@@ -187,24 +187,21 @@ const initializeHLS = (m3u8) => {
   window.addEventListener("message", messageHandler);
 };
 
-const fetchStreamingData = () => {
+const fetchStreamingData = async () => {
   loading.value = true;
   try {
     if (!uuid.value) {
       error.value = "Missing video UUID";
       return;
     }
-    setImmediate(async () => {
-      const response = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
-      const { streaming } = await response.json();
-      source.value = PROXY_URL + streaming.playlist;
-    });
     //
-    setImmediate(async () => {
-      const response = await fetch(`${API_URL}/subscription/?email=${email.value}`);
-      const { results } = await response.json();
-      subscribed.value = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status }));
-    });
+    const responseStreaming = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
+    const { streaming } = await responseStreaming.json();
+    source.value = PROXY_URL + streaming.playlist;
+    //
+    const responseSubscription = await fetch(`${API_URL}/subscription/?email=${email.value}`);
+    const { results } = await responseSubscription.json();
+    subscribed.value = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status }));
     //
   } catch (err) {
     error.value = err.message;
