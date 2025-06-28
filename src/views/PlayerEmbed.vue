@@ -41,6 +41,7 @@ const randomId = ref(null);
 const email = ref(null);
 const currentQuality = ref(0);
 const lowQuality = ref(0);
+const subscribed = ref([]);
 
 const formatBytes = (bytes) => {
   if (bytes === 0) return "0 Bytes";
@@ -196,6 +197,11 @@ const fetchStreamingData = async () => {
     const response = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
     const { streaming } = await response.json();
     source.value = PROXY_URL + streaming.playlist;
+    //
+    const response = await fetch(`${API_URL}/subscription/?email=${email.value}`);
+    const { results } = await response.json();
+    subscribed.value = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status }));
+    //
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -211,21 +217,16 @@ watchEffect(() => {
 
 watchEffect(async () => {
   if (currentQuality.value > lowQuality.value) {
-    const response = await fetch(`${API_URL}/subscription/?email=${email.value}`);
-    const { results } = await response.json();
-    const subscribed = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status })).filter(({ end_date, status }) => status === "active" && end_date.getTime() > Date.now());
-    console.log({ subscribed });
-    if (subscribed.length === 0) {
+    const subscribedFilter = results.filter(({ end_date, status }) => status === "active" && end_date.getTime() > Date.now());
+    if (subscribedFilter.length === 0) {
       player.value.quality = lowQuality.value;
       player.value.pause();
       console.log("Subscription expired. Lowering quality to", lowQuality.value);
-
       // Show warning dialog
       const confirmed = await showWarningDialog();
       if (confirmed) {
         player.value.play();
       }
-      return;
     }
   }
 });
