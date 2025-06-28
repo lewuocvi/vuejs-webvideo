@@ -217,7 +217,7 @@ watchEffect(() => {
 
 watchEffect(async () => {
   if (currentQuality.value > lowQuality.value) {
-    const subscribedFilter = results.filter(({ end_date, status }) => status === "active" && end_date.getTime() > Date.now());
+    const subscribedFilter = subscribed.value.filter(({ end_date, status }) => status === "active" && end_date.getTime() > Date.now());
     if (subscribedFilter.length === 0) {
       player.value.quality = lowQuality.value;
       player.value.pause();
