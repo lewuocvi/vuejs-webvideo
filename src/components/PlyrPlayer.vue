@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-6xl mx-auto pt-8 flex flex-col md:flex-row gap-8">
-    <div class="md:w-2/3 m-auto">
+    <div class="md:w-2/3">
       <video ref="videoEl" controls class="w-full rounded-xl shadow-lg"></video>
     </div>
     <div v-if="debug" class="md:w-1/3">

@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import Hls from "hls.js";
 import { HlsJsP2PEngine } from "p2p-media-loader-hlsjs";
 
@@ -6,6 +6,22 @@ export function useP2PVideoPlayer(source) {
   const connectedPeers = ref(0);
   const totalDownloaded = ref(0);
   const totalUploaded = ref(0);
+
+  const callbacks = reactive({
+    onPeerConnect: null,
+    onPeerClose: null,
+    onPeerError: null,
+    onSegmentLoaded: null,
+    onSegmentError: null,
+    onChunkDownloaded: null,
+    onChunkUploaded: null,
+  });
+
+  const setCallback = (name, callback) => {
+    callbacks[name] = callback;
+  };
+
+  const on = (event, callback) => setCallback(event, callback);
 
   const initializeP2P = (video) => {
     let hls = null;
@@ -25,18 +41,24 @@ export function useP2PVideoPlayer(source) {
           onHlsJsCreated: (hlsInstance) => {
             const events = {
               onPeerConnect: (peer) => {
-                console.log("Peer connected:", peer);
+                callbacks.onPeerConnect?.(peer);
                 connectedPeers.value++;
               },
               onPeerClose: (peer) => {
-                console.log("PeerClose:", peer);
+                callbacks.onPeerClose?.(peer);
                 connectedPeers.value = Math.max(0, connectedPeers.value - 1);
               },
-              onPeerError: (peer) => console.log("onPeerError:", peer),
-              onSegmentLoaded: (details) => console.log("Segment Loaded:", details),
-              onSegmentError: (errorDetails) => console.error("Error loading segment:", errorDetails),
-              onChunkDownloaded: (bytesLength) => (totalDownloaded.value += bytesLength),
-              onChunkUploaded: (bytesLength) => (totalUploaded.value += bytesLength),
+              onPeerError: (peer) => callbacks.onPeerError?.(peer),
+              onSegmentLoaded: (details) => callbacks.onSegmentLoaded?.(details),
+              onSegmentError: (errorDetails) => callbacks.onSegmentError?.(errorDetails),
+              onChunkDownloaded: (bytesLength) => {
+                totalDownloaded.value += bytesLength;
+                callbacks.onChunkDownloaded?.(bytesLength);
+              },
+              onChunkUploaded: (bytesLength) => {
+                totalUploaded.value += bytesLength;
+                callbacks.onChunkUploaded?.(bytesLength);
+              },
             };
 
             Object.entries(events).forEach(([event, handler]) => {
@@ -50,8 +72,11 @@ export function useP2PVideoPlayer(source) {
       hls.attachMedia(video);
     }
 
-    return { hls, destroy: () => hls?.destroy() };
+    return {
+      hls,
+      destroy: () => hls?.destroy(),
+    };
   };
 
-  return { connectedPeers, totalDownloaded, totalUploaded, initializeP2P };
+  return { connectedPeers, totalDownloaded, totalUploaded, initializeP2P, on };
 }

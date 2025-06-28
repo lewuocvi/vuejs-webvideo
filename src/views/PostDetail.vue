@@ -19,14 +19,6 @@
     </div>
 
     <p v-else class="text-xl text-gray-600 text-center py-12">Đang tải dữ liệu...</p>
-
-    <!-- <div v-if="postStore.currentPost" class="bg-white overflow-hidden mt-4">
-            <div class="p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Bình luận</h2>
-                <CommentList :comments="postStore.comments" />
-                <CommentForm @add-comment="addComment" />
-            </div>
-        </div> -->
   </div>
 </template>
 
@@ -35,10 +27,7 @@ import { onMounted, watch, computed } from "vue";
 import { useRoute } from "vue-router";
 import { usePostStore } from "../store/postStore";
 import { useUserStore } from "../store/userStore";
-import { useHead } from "@vueuse/head";
 import PlyrPlayer from "../components/PlyrPlayer.vue";
-import CommentForm from "../components/CommentForm.vue";
-import CommentList from "../components/CommentList.vue";
 
 const postStore = usePostStore();
 const userStore = useUserStore();

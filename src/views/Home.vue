@@ -1,5 +1,5 @@
 <template>
-  <main class="container mx-auto px-4 py-10">
+  <div class="container mx-auto px-4 py-10">
     <div v-if="streamings.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <article v-for="streaming in streamings" :key="streaming.id" class="bg-white rounded-lg shadow-md overflow-hidden">
         <router-link :to="{ name: 'StreamingViewDetail', query: { v: streaming.uuid } }">
@@ -20,7 +20,7 @@
       </article>
     </div>
     <p v-else class="text-xl text-gray-600 text-center py-12">Đang tải dữ liệu...</p>
-  </main>
+  </div>
 </template>
 
 <script setup>

@@ -21,7 +21,6 @@ export const useUserStore = defineStore("userStore", {
 
   actions: {
     //
-
     async fetchUserData(endpoint, payload) {
       try {
         const { data } = await axios.post(API_URL + endpoint, JSON.stringify(payload), { headers: { Authorization: `Bearer ${this.token}`, "Content-Type": "application/json" } });
