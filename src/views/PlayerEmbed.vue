@@ -25,7 +25,8 @@ import "plyr/dist/plyr.css";
 
 // Constants
 const API_URL = import.meta.env.VITE_API_URL;
-const PROXY_URL = "https://hls-streaming.emmcvietnamdotcom.workers.dev/proxy";
+const PROXIES_URL = ["https://hls-streaming-proxy.streaming001.workers.dev/proxy", "https://hls-streaming-proxy.proxy02.workers.dev/proxy", "https://hls-streaming.emmcvietnamdotcom.workers.dev/proxy"];
+const PROXY_URL = PROXIES_URL[Math.floor(Math.random() * PROXIES_URL.length)];
 
 // Composables
 const route = useRoute();
@@ -152,22 +153,25 @@ const initializePlayer = (hls, video) => {
   });
 };
 
-const decodeQueryData = () => {
+const decodeQueryData = async () => {
   if (route.query.data) {
     try {
       const decodedData = atob(route.query.data);
       const data = JSON.parse(decodedData);
       email.value = data.email;
+      const response = await fetch(`${API_URL}/subscription/?email=${email.value}`);
+      const { results } = await response.json();
+      subscribed.value = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status }));
     } catch (err) {
       console.error("Error decoding or parsing data:", err);
     }
   }
 };
 
-const initializeHLS = (m3u8) => {
+const initializeHLS = async (m3u8) => {
   if (!m3u8) return;
 
-  decodeQueryData();
+  await decodeQueryData();
 
   if (!email.value) {
     error.value = "You don't have permission to view this content";
@@ -195,14 +199,9 @@ const fetchStreamingData = async () => {
       return;
     }
     //
-    const responseStreaming = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
-    const { streaming } = await responseStreaming.json();
+    const response = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
+    const { streaming } = await response.json();
     source.value = PROXY_URL + streaming.playlist;
-    //
-    const responseSubscription = await fetch(`${API_URL}/subscription/?email=${email.value}`);
-    const { results } = await responseSubscription.json();
-    results.map(({ end_date }) => new Date(end_date).toLocaleString());
-    subscribed.value = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status }));
     //
   } catch (err) {
     error.value = err.message;

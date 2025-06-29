@@ -6,6 +6,6 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 export default defineConfig({
   plugins: [tailwindcss(), vue(), nodePolyfills()],
   server: {
-    allowedHosts: ['localhost.filemienphi.com']
+    allowedHosts: ['localhost.emmcvietnam.com']
   }
 });
