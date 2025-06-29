@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import { useP2PVideoPlayer } from "../composables/useP2PVideoPlayer";
 import Hls from "hls.js";
@@ -45,14 +45,6 @@ const email = ref(null);
 const currentQuality = ref(0);
 const lowQuality = ref(0);
 const subscribed = ref([]);
-
-const formatBytes = (bytes) => {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-};
 
 const generateRandomId = (length = 32) => {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -173,6 +165,13 @@ const initializeHLS = async (m3u8) => {
   window.addEventListener("message", messageHandler);
 };
 
+const getFileInfo = async (uuid) => {
+  const response = await fetch("https://storage-mapping.emmcvietnamdotcom.workers.dev/hls/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ uuid }) });
+  const { file } = await response.json();
+  if (file) return file;
+  if (!file) error.value = "Video not found";
+};
+
 const fetchStreamingData = async () => {
   loading.value = true;
   try {
@@ -181,9 +180,11 @@ const fetchStreamingData = async () => {
       return;
     }
     //
-    const response = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
-    const { streaming } = await response.json();
-    source.value = PROXY_URL + streaming.playlist;
+    const fileInfo = await getFileInfo(uuid.value);
+    //
+    // const response = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
+    // const { streaming } = await response.json();
+    source.value = PROXY_URL + fileInfo;
     //
   } catch (err) {
     error.value = err.message;
