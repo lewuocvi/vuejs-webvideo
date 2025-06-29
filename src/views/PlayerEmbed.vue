@@ -1,4 +1,8 @@
 <template>
+  <div v-if="loading" class="bg-black h-screen w-screen flex items-center justify-center">
+    <span class="loading loading-spinner loading-xl"></span>
+  </div>
+
   <div v-if="error" class="bg-black h-screen w-screen flex items-center justify-center">
     <div role="alert" class="alert alert-error max-w-md w-full mx-4">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
@@ -7,12 +11,9 @@
       <span>{{ error }}</span>
     </div>
   </div>
-
-  <div v-else-if="loading" class="bg-black h-screen w-screen flex items-center justify-center">
-    <span class="loading loading-spinner loading-xl"></span>
-  </div>
-
   <video v-else ref="videoEl" controls class="bg-black h-screen w-screen flex items-center justify-center"></video>
+
+  //
 </template>
 
 <script setup>
@@ -163,7 +164,7 @@ const decodeQueryData = async () => {
       const { results } = await response.json();
       subscribed.value = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status }));
     } catch (err) {
-      console.error("Error decoding or parsing data:", err);
+      error.value = "Error decoding or parsing data";
     }
   }
 };
