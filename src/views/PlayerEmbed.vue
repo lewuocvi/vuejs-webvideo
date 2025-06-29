@@ -1,10 +1,10 @@
 <template>
-  <div class="bg-black w-screen h-screen flex items-center justify-center">
+  <div v-if="loading || error" class="bg-black w-screen h-screen flex items-center justify-center">
     <div v-if="loading" class="flex items-center justify-center w-full h-full">
       <span class="loading loading-spinner loading-xl"></span>
     </div>
 
-    <div v-else-if="error" class="flex items-center justify-center w-full h-full">
+    <div v-if="error" class="flex items-center justify-center w-full h-full">
       <div role="alert" class="alert alert-error max-w-md w-full mx-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -12,9 +12,9 @@
         <span>{{ error }}</span>
       </div>
     </div>
-
-    <video v-else ref="videoEl" class="bg-black w-screen h-screen" controls></video>
   </div>
+
+  <video v-if="!loading && !error" ref="videoEl" class="bg-black w-screen h-screen" controls></video>
 </template>
 
 <script setup>
