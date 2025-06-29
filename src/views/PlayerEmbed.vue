@@ -167,9 +167,7 @@ const initializeHLS = async (m3u8) => {
 
 const getFileInfo = async (uuid) => {
   const response = await fetch("https://storage-mapping.emmcvietnamdotcom.workers.dev/hls/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ uuid }) });
-  const { file } = await response.json();
-  if (file) return file;
-  if (!file) error.value = "Video not found";
+  return await response.json();
 };
 
 const fetchStreamingData = async () => {
@@ -180,11 +178,13 @@ const fetchStreamingData = async () => {
       return;
     }
     //
-    const fileInfo = await getFileInfo(uuid.value);
+    const { file } = await getFileInfo(uuid.value);
+    if (!file) {
+      error.value = "Video not found";
+      return;
+    }
     //
-    // const response = await fetch(`${API_URL}/streaming?v=${uuid.value}`);
-    // const { streaming } = await response.json();
-    source.value = PROXY_URL + fileInfo;
+    source.value = PROXY_URL + file;
     //
   } catch (err) {
     error.value = err.message;
