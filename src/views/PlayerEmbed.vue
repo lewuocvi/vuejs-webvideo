@@ -103,30 +103,6 @@ const messageHandler = (event) => {
   }
 };
 
-const showWarningDialog = () => {
-  return new Promise((resolve) => {
-    const dialog = document.createElement("div");
-    dialog.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-          <h3 class="text-lg font-bold mb-4">Thông báo về Đăng ký</h3>
-          <p class="mb-4">Đăng ký của bạn đã hết hạn. Chất lượng video đã được giảm để phù hợp với gói hiện tại của bạn.</p>
-          <button id="continueBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Tiếp tục xem chất lượng thấp
-          </button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(dialog);
-
-    const continueBtn = dialog.querySelector("#continueBtn");
-    continueBtn.addEventListener("click", () => {
-      document.body.removeChild(dialog);
-      resolve(true);
-    });
-  });
-};
-
 const initializePlayer = (hls, video) => {
   hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     const levels = hls.levels;
@@ -180,7 +156,7 @@ const initializeHLS = async (m3u8) => {
   await decodeQueryData();
 
   if (!email.value) {
-    error.value = "You don't have permission to view this content";
+    error.value = "Bạn không có quyền xem nội dung này";
     return;
   }
 
@@ -222,14 +198,48 @@ watchEffect(() => {
   initializeHLS(source.value);
 });
 
+const showWarningDialog = () => {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("div");
+    dialog.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+          <h3 class="text-lg font-bold mb-4 text-center">Đăng ký của bạn đã hết hạn</h3>
+          <p class="mb-4 text-center">Chất lượng video hiện tại: <span class="font-semibold">${lowQuality.value}P</span></p>
+          <div class="flex flex-col space-y-2">
+            <button id="continueLowQualityBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Tiếp tục xem chất lượng thấp
+            </button>
+            <button id="subscribeHighQualityBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+              liên hệ zalo: 0979799247
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    const continueLowQualityBtn = dialog.querySelector("#continueLowQualityBtn");
+    continueLowQualityBtn.addEventListener("click", () => {
+      document.body.removeChild(dialog);
+      resolve(true);
+    });
+
+    const subscribeHighQualityBtn = dialog.querySelector("#subscribeHighQualityBtn");
+    subscribeHighQualityBtn.addEventListener("click", () => {
+      document.body.removeChild(dialog);
+      resolve(true);
+    });
+  });
+};
+
 watchEffect(async () => {
   if (currentQuality.value > lowQuality.value) {
     const subscribedFilter = subscribed.value.filter(({ end_date, status }) => status === "active" && end_date.getTime() > Date.now());
     if (subscribedFilter.length === 0) {
-      player.value.quality = lowQuality.value;
       player.value.pause();
-      console.log("Subscription expired. Lowering quality to", lowQuality.value);
-      // Show warning dialog
+      player.fullscreen = false;
+      player.value.quality = lowQuality.value;
       const confirmed = await showWarningDialog();
       if (confirmed) {
         player.value.play();
