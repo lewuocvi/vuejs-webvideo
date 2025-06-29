@@ -12,8 +12,6 @@
     </div>
   </div>
   <video v-else ref="videoEl" controls class="bg-black h-screen w-screen flex items-center justify-center"></video>
-
-  //
 </template>
 
 <script setup>
