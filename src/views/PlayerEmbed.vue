@@ -201,6 +201,7 @@ const fetchStreamingData = async () => {
     //
     const responseSubscription = await fetch(`${API_URL}/subscription/?email=${email.value}`);
     const { results } = await responseSubscription.json();
+    results.map(({ end_date }) => new Date(end_date).toLocaleString());
     subscribed.value = results.map(({ end_date, status }) => ({ end_date: new Date(end_date), status }));
     //
   } catch (err) {
